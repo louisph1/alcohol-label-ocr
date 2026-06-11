@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Collections - Gallery</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Applications</h1>
+            <nav>
+                <a href="http://localhost:8080">Upload</a>
+                <a href="/" class="active">Gallery</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Collections -->
+            <div class="section">
+                <h2>Collections</h2>
+                {{if .Collections}}
+                <div class="collections-grid">
+                    {{range .Collections}}
+                    <div class="collection-card">
+                        <a href="/collection/?id={{.ID}}">
+                            <div class="collection-preview">
+                                {{if .FirstImageFilename}}
+                                <img src="/uploads/{{.FirstImageFilename}}" alt="{{.Name}}">
+                                {{else}}
+                                <div class="empty-collection">📁</div>
+                                {{end}}
+                            </div>
+                            <div class="collection-info">
+                                <h3>{{.Name}}</h3>
+                                <p>{{.Address}}</p>
+                                <span class="image-count">{{.ImageCount}} applications</span>
+                            </div>
+                        </a>
+                        <form action="/delete-collection/{{.ID}}" method="POST" onsubmit="return confirm('Delete entire collection?')">
+                            <button type="submit" class="btn-delete-small">×</button>
+                        </form>
+                    </div>
+                    {{end}}
+                </div>
+                {{else}}
+                <p class="empty-state">No applications currently</p>
+                {{end}}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

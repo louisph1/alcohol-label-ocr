@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Collections - Upload</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Application Manager</h1>
+            <nav>
+                <a href="/" class="active">Upload</a>
+                <a href="http://localhost:8081">Gallery</a>
+            </nav>
+        </header>
+
+        <main>
+            {{if .Error}}
+            <div class="error">{{.Error}}</div>
+            {{end}}
+
+            <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+                <!--<div class="section">
+                    <h2>Upload batch</h2>
+                    <form action="/collection/create" method="POST" class="inline-form">
+                        <input type="text" name="name" placeholder="Company name" required>
+                    </form>
+                </div>-->
+
+                <div class="section">
+                    <h2>Company info</h2>
+                    <input type="text" name="name" placeholder="Company name" required>
+                    <input type="text" name="address" placeholder="Address" required>
+                </div>
+
+                <!-- Upload Images -->
+                <div class="section">
+                    <h2>Upload Images</h2>
+
+                    <!-- <div class="form-group">
+                        <label>Add to Collection</label>
+                        <select name="collection_id">
+                            <option value="">No collection (standalone images)</option>
+                            {{range .Collections}}
+                            <option value="{{.ID}}">{{.Name}} ({{.ImageCount}} images)</option>
+                            {{end}}
+                        </select>
+                    </div>-->
+
+                    <div id="imageEntries">
+                        <div class="image-entry">
+                            <h3>Image 1</h3>
+                            <div class="form-group">
+                                <label>Label</label>
+                                <input type="label" name="title_0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type/class</label>
+                                <input name="type_0" placeholder="Beer" required></input>
+                                <label>Alcohol content</label>
+                                <input name="alcohol_content_0" placeholder="200 Proof" required></input>
+                                <label>Net content</label>
+                                <input name="net_content_0" placeholder="750 mL" required></input>
+                                <label>Country of origin</label>
+                                <input name="origin_0" placeholder="United States" required></input>
+                            </div>
+                            <div class="form-group">
+                                <label>Image</label>
+                                <input type="file" name="images" accept="image/*" class="image-input" data-index="0">
+                            </div>
+                            <div class="image-preview" id="preview_0"></div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-secondary" onclick="addImageEntry()">+ Add Another Image</button>
+                    <button type="submit" class="btn-primary">Upload All Images</button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        let imageCount = 0;
+
+        function addImageEntry() {
+            imageCount++;
+            const entry = document.createElement('div');
+            entry.className = 'image-entry';
+            entry.innerHTML = `<div class="image-entry">
+                <h3>Image ${imageCount + 1}</h3>
+                <div class="form-group">
+                    <label>Label</label>
+                    <input type="label" name="title_${imageCount}" required>
+                </div>
+                <div class="form-group">
+                    <label>Type/class</label>
+                    <input name="type_${imageCount}" placeholder="Beer" required></input>
+                    <label>Alcohol content</label>
+                    <input name="alcohol_content_${imageCount}" placeholder="200 Proof" required></input>
+                    <label>Net content</label>
+                    <input name="net_content_${imageCount}" placeholder="750 mL" required></input>
+                    <label>Country of origin</label>
+                    <input name="origin_${imageCount}" placeholder="United States" required></input>
+                </div>
+                <div class="form-group">
+                    <label>Image</label>
+                    <input type="file" name="images" accept="image/*" class="image-input" data-index="${imageCount}">
+                </div>
+                <div class="image-preview" id="preview_${imageCount}"></div>
+            </div>`;
+
+            document.getElementById('imageEntries').appendChild(entry);
+
+            // Add preview functionality to new entry
+            entry.querySelector('.image-input').addEventListener('change', function(e) {
+                previewImage(e.target, e.target.dataset.index);
+            });
+        }
+
+        function previewImage(input, index) {
+            const preview = document.getElementById('preview_' + index);
+            preview.innerHTML = '';
+            if (input.files && input.files[0]) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(input.files[0]);
+                preview.appendChild(img);
+            }
+        }
+
+        // Add preview to initial image input
+        document.querySelector('.image-input').addEventListener('change', function(e) {
+            previewImage(e.target, e.target.dataset.index);
+        });
+    </script>
+</body>
+</html>

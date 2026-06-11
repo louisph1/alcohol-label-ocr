@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{.Name}}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Application Details</h1>
+            <nav><a href="javascript:history.back()">← Back</a></nav>
+        </header>
+        <main class="image-detail">
+            <img src="/uploads/{{.Filename}}" alt="{{.Name}}" style="max-width: 100%; border-radius: 10px;">
+            <h2>{{.Name}}</h2>
+            <p>Type: {{.Type}}</p>
+            <p>Alcohol content: {{.Alcohol_content}}</p>
+            <p>Net content: {{.Net_content}}</p>
+            <p>Country of origin: {{.Origin}}</p>
+            <p class="date">Uploaded: {{.UploadDate}}</p>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Name}} - Collection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>{{.Name}}</h1>
+                <p class="collection-description">{{.Address}}</p>
+            </div>
+            <nav>
+                <a href="http://localhost:8080">Upload</a>
+                <a href="/">Gallery</a>
+            </nav>
+        </header>
+
+        <main>
+            {{if .Images}}
+            <div class="gallery-grid">
+                {{range .Images}}
+                <div class="gallery-item">
+                    <div class="image-container">
+                        <a href="/image/{{.ID}}">
+                            <img src="/uploads/{{.Filename}}" alt="{{.Name}}" loading="lazy">
+                        </a>
+                    </div>
+                    <div class="image-info">
+                        <h3>{{.Name}}</h3>
+                        <p>{{.Type}}</p>
+                        <p>{{.Alcohol_content}}</p>
+                        <p>{{.Net_content}}</p>
+                        <p>{{.Origin}}</p>
+                        <div class="image-meta">
+                            <span class="date">{{.UploadDate.Format "Jan 02, 2006"}}</span>
+                        </div>
+
+                        <!-- The illusion of choice -->
+                        <form action="/delete/{{.ID}}" method="POST" class="delete-form" onsubmit="return confirm('Confirm?')">
+                            <button type="submit" class="btn-approve-small">Approve</button>
+                            <button type="submit" class="btn-delete-small">Reject</button>
+                        </form>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="empty-state">
+                <p>No applications in this group.</p>
+                <a href="http://localhost:8080" class="btn-primary">Add Images</a>
+            </div>
+            {{end}}
+
+            <div class="collection-actions">
+                <form action="/delete-collection/{{.ID}}" method="POST" onsubmit="return confirm('Delete entire collection and all its images?')">
+                    <button type="submit" class="btn-danger">Delete Collection</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
