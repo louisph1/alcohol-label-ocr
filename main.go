@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"html/template"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"google.golang.org/genai"
 )
 
 type Image struct {
@@ -52,8 +54,25 @@ var (
 
 var uploadPort = ":8080"
 var galleryPort = ":8081"
+var aiClient *genai.Client
 
 func main() {
+	//load api key
+	data, err := os.ReadFile("apikey.txt")
+	if err != nil {
+		fmt.Println("Error loading apikey.txt: ", err)
+		return
+	}
+	apiKey := strings.TrimSpace(string(data))
+
+	ctx := context.Background()
+
+	//create gemma connection
+	aiClient, err = genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey:  apiKey,
+		Backend: genai.BackendGeminiAPI,
+	})
+
 	// Parse command line arguments for ports
 
 	if len(os.Args) > 1 {
@@ -64,7 +83,6 @@ func main() {
 	}
 
 	// Initialize database
-	var err error
 	db, err = sql.Open("sqlite3", "./image_collections.db")
 	if err != nil {
 		log.Fatal(err)
@@ -332,7 +350,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 					fmt.Println("Error: lastid")
 					return
 				}
-				go processImage(lastid, collectionID, filename)
+				go processImage(lastid, collectionID)
 
 			}
 
@@ -476,11 +494,33 @@ func galleryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var currentlyProcessing int
+	dbMutex.RLock()
+	err = db.QueryRow(`
+		SELECT COUNT(*)
+		FROM (
+			SELECT COUNT(i.id) as image_count
+        	FROM collections c
+        	LEFT JOIN images i ON c.id = i.collection_id
+        	GROUP BY c.id
+			HAVING c.processed < image_count AND image_count > 0
+        	ORDER BY c.created_date DESC
+		)`,
+	).Scan(&currentlyProcessing)
+	dbMutex.RUnlock()
+
+	if err != nil {
+		http.Error(w, "Error loading collections", http.StatusInternalServerError)
+		return
+	}
+
 	//this is a remnant of something else the AI did
 	data := struct {
-		Collections []Collection
+		Collections         []Collection
+		CurrentlyProcessing int
 	}{
-		Collections: collections,
+		Collections:         collections,
+		CurrentlyProcessing: currentlyProcessing,
 	}
 
 	templates.ExecuteTemplate(w, "gallery.html", data)
