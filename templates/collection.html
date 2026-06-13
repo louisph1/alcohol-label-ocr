@@ -35,6 +35,32 @@
                         <p>{{.Alcohol_content}}</p>
                         <p>{{.Net_content}}</p>
                         <p>{{.Origin}}</p>
+                        {{if .Processing_data}}
+                        <div class="processing-container">
+                            <!-- Status Tags -->
+                            <div class="tag-group">
+                                {{if .Processing_data.Legal}}
+                                    <span class="tag tag-legal">Legal</span>
+                                {{else}}
+                                    <span class="tag tag-illegal">Illegal</span>
+                                {{end}}
+
+                                {{if .Processing_data.Unsure}}
+                                    <span class="tag tag-unsure">Unsure</span>
+                                {{end}}
+                            </div>
+
+                            <!-- Issues Tags -->
+                            <div class="tag-group">
+                                {{range .Processing_data.Issues}}
+                                    <span class="tag tag-issue">{{.}}</span>
+                                {{end}}
+                                {{range .Processing_data.Potential_issues}}
+                                    <span class="tag tag-potential">{{.}}</span>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
                         <div class="image-meta">
                             <span class="date">{{.UploadDate.Format "Jan 02, 2006"}}</span>
                         </div>

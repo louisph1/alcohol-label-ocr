@@ -257,7 +257,7 @@ textarea {
 
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 25px;
 }
 
@@ -408,4 +408,74 @@ textarea {
     main {
         padding: 20px;
     }
+}
+
+
+/* Processing Data Container */
+.processing-container {
+    margin: 10px 0;
+    text-align: left;
+    font-size: 0.85rem;
+}
+
+.tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+/* Base Tag Style */
+.tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Color Coding */
+.tag-legal {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.tag-illegal {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.tag-unsure {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.tag-issue {
+    background-color: #ef4444;
+    color: white;
+    text-transform: none; /* Allow normal casing for detailed issues */
+    font-weight: normal;
+}
+
+.tag-potential {
+    background-color: #f59e0b;
+    color: white;
+    text-transform: none; /* Allow normal casing for potential issues */
+    font-weight: normal;
+}
+
+/* Unfiltered Text Styling */
+.unfiltered-text {
+    font-style: italic;
+    color: #6b7280;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    margin: 5px 0;
+    border-left: 2px solid #d1d5db;
+    padding-left: 8px;
 }

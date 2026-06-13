@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -19,6 +20,15 @@ import (
 	"google.golang.org/genai"
 )
 
+// for sending to server
+type ProcessedData struct {
+	Unfiltered_text  string
+	Issues           []string
+	Potential_issues []string
+	Legal            bool
+	Unsure           bool
+}
+
 type Image struct {
 	ID              int
 	CollectionID    int
@@ -29,7 +39,9 @@ type Image struct {
 	Origin          string
 	Filename        string
 	Processed       int
-	UploadDate      time.Time
+	Processing_data ProcessedData
+
+	UploadDate time.Time
 }
 
 type Collection struct {
@@ -40,7 +52,7 @@ type Collection struct {
 	Processed   int
 	CreatedDate time.Time
 
-	//used for server, not in db
+	//used for server, not in db.
 	ImageCount         int
 	Images             []Image
 	FirstImageFilename string
@@ -114,8 +126,6 @@ func main() {
 		// Upload routes
 		uploadMux.HandleFunc("/", indexHandler)
 		uploadMux.HandleFunc("/upload", uploadHandler)
-		uploadMux.HandleFunc("/collection/create", createCollectionHandler)
-		uploadMux.HandleFunc("/collection/add", addToCollectionHandler)
 		uploadMux.HandleFunc("/collection/", collectionHandler)
 
 		uploadServer := &http.Server{
@@ -361,84 +371,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func createCollectionHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("create collection handler called (error)")
-
-	/*if r.Method == "POST" {
-		name := r.FormValue("name")
-		description := r.FormValue("description")
-
-		if name == "" {
-			http.Error(w, "Collection name is required", http.StatusBadRequest)
-			return
-		}
-
-		dbMutex.Lock()
-		_, err := db.Exec("INSERT INTO collections (name, description) VALUES (?, ?)", name, description)
-		dbMutex.Unlock()
-
-		if err != nil {
-			http.Error(w, "Error creating collection", http.StatusInternalServerError)
-			return
-		}
-
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-	}*/
-}
-
-func addToCollectionHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Add to collection handler (error)")
-
-	/*if r.Method == "POST" {
-		r.ParseMultipartForm(50 << 20)
-
-		collectionID := r.FormValue("collection_id")
-		if collectionID == "" {
-			http.Error(w, "Collection ID is required", http.StatusBadRequest)
-			return
-		}
-
-		// Handle multiple file uploads
-		files := r.MultipartForm.File["images"]
-		for i, fileHeader := range files {
-			file, err := fileHeader.Open()
-			if err != nil {
-				continue
-			}
-			defer file.Close()
-
-			// Get individual metadata for each image
-			title := r.FormValue(fmt.Sprintf("title_%d", i))
-			description := r.FormValue(fmt.Sprintf("description_%d", i))
-			category := r.FormValue(fmt.Sprintf("category_%d", i))
-			tags := r.FormValue(fmt.Sprintf("tags_%d", i))
-
-			if title == "" {
-				title = strings.TrimSuffix(fileHeader.Filename, filepath.Ext(fileHeader.Filename))
-			}
-
-			filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), fileHeader.Filename)
-			filepath := filepath.Join("uploads", filename)
-
-			dst, err := os.Create(filepath)
-			if err != nil {
-				continue
-			}
-			io.Copy(dst, file)
-			dst.Close()
-
-			dbMutex.Lock()
-			db.Exec(
-				"INSERT INTO images (collection_id, title, description, category, tags, filename) VALUES (?, ?, ?, ?, ?, ?)",
-				collectionID, title, description, category, tags, filename,
-			)
-			dbMutex.Unlock()
-		}
-
-		http.Redirect(w, r, "/collection/?id="+collectionID, http.StatusSeeOther)
-	}*/
-}
-
 func collectionHandler(w http.ResponseWriter, r *http.Request) {
 	collectionID := r.URL.Query().Get("id")
 	if collectionID == "" {
@@ -462,7 +394,7 @@ func collectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get images for this collection
 	rows, err := db.Query(
-		"SELECT id, collection_id, name, type, alcohol_content, net_content, origin, filename, processed, upload_date FROM images WHERE collection_id = ? ORDER BY upload_date DESC",
+		"SELECT id, collection_id, name, type, alcohol_content, net_content, origin, filename, upload_date FROM images WHERE collection_id = ? ORDER BY upload_date DESC",
 		collectionID,
 	)
 	dbMutex.RUnlock()
@@ -478,11 +410,15 @@ func collectionHandler(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&img.ID, &img.CollectionID, &img.Name, &img.Type,
 			&img.Alcohol_content, &img.Net_content, &img.Origin, &img.Filename, &img.UploadDate)
 		if err != nil {
+			fmt.Println("Err:", err)
 			continue
 		}
+
 		c.Images = append(c.Images, img)
 	}
 	c.ImageCount = len(c.Images)
+
+	fmt.Println("hi")
 
 	templates.ExecuteTemplate(w, "collection.html", c)
 }
@@ -547,7 +483,7 @@ func viewCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := db.Query(
-		"SELECT id, collection_id, name, type, alcohol_content, net_content, filename, upload_date FROM images WHERE collection_id = ? ORDER BY upload_date DESC",
+		"SELECT id, collection_id, name, type, alcohol_content, net_content, origin, filename, processing_data, upload_date FROM images WHERE collection_id = ? ORDER BY upload_date DESC",
 		collectionID,
 	)
 	dbMutex.RUnlock()
@@ -560,15 +496,26 @@ func viewCollectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var img Image
+		var processing_data string
 		err := rows.Scan(&img.ID, &img.CollectionID, &img.Name, &img.Type,
-			&img.Alcohol_content, &img.Net_content, &img.Filename, &img.UploadDate)
+			&img.Alcohol_content, &img.Net_content, &img.Origin, &img.Filename, &processing_data, &img.UploadDate)
 		if err != nil {
+			fmt.Println("viewCollectionHandler error: ", err)
+			continue
+		}
+		//get processed data as struct
+		err = json.Unmarshal([]byte(processing_data), &img.Processing_data)
+		if err != nil {
+			fmt.Println("JSON unmarshal error", err)
 			continue
 		}
 		c.Images = append(c.Images, img)
 	}
 
-	templates.ExecuteTemplate(w, "collection.html", c)
+	err = templates.ExecuteTemplate(w, "collection.html", c)
+	if err != nil {
+		fmt.Println("viewCollectionHandler template error:", err)
+	}
 }
 
 func viewImageHandler(w http.ResponseWriter, r *http.Request) {
@@ -577,13 +524,19 @@ func viewImageHandler(w http.ResponseWriter, r *http.Request) {
 
 	dbMutex.RLock()
 	var img Image
+	var processing_data string
 	err := db.QueryRow(
-		"SELECT id, collection_id, name, type, alcohol_content, net_content, filename, upload_date FROM images WHERE id = ?",
+		"SELECT id, collection_id, name, type, alcohol_content, net_content, origin, filename, processing_data, upload_date FROM images WHERE id = ?",
 		id,
 	).Scan(&img.ID, &img.CollectionID, &img.Name, &img.Type,
-		&img.Alcohol_content, &img.Net_content, &img.Filename, &img.UploadDate)
+		&img.Alcohol_content, &img.Net_content, &img.Origin, &img.Filename, &processing_data, &img.UploadDate)
 	dbMutex.RUnlock()
 
+	//get processed data as struct
+	err = json.Unmarshal([]byte(processing_data), &img.Processing_data)
+	if err != nil {
+		fmt.Println("JSON unmarshal error", err)
+	}
 	if err != nil {
 		http.NotFound(w, r)
 		return
