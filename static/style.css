@@ -479,3 +479,74 @@ textarea {
     border-left: 2px solid #d1d5db;
     padding-left: 8px;
 }
+
+/* Unfiltered Text Box */
+.unfiltered-box {
+    margin-top: 20px;
+    text-align: left;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.unfiltered-box label {
+    display: block;
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.unfiltered-content {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.4;
+    white-space: pre-wrap; /* Preserves line breaks from the OCR */
+}
+
+/* Decision Buttons */
+.decision-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.decision-form {
+    display: inline-block;
+}
+
+.btn-approve {
+    background-color: #119705;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-approve:hover {
+    background-color: #0e7a04;
+}
+
+.btn-reject {
+    background-color: #dc3545;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-reject:hover {
+    background-color: #b02a37;
+}

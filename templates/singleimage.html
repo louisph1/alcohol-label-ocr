@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
-<head><title>{{.Name}}</title>
-<link rel="stylesheet" href="/static/style.css">
+<head>
+    <title>{{.Name}}</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
@@ -11,11 +12,23 @@
         </header>
         <main class="image-detail">
             <img src="/uploads/{{.Filename}}" alt="{{.Name}}" style="max-width: 100%; border-radius: 10px;">
+
             <h2>{{.Name}}</h2>
             <p>Type: {{.Type}}</p>
             <p>Alcohol content: {{.Alcohol_content}}</p>
             <p>Net content: {{.Net_content}}</p>
             <p>Country of origin: {{.Origin}}</p>
+
+            <!-- Action Buttons -->
+            <div class="decision-actions">
+                <form action="/delete/{{.ID}}" method="POST" class="decision-form">
+                    <button type="submit" class="btn-approve">Approve Application</button>
+                </form>
+                <form action="/delete/{{.ID}}" method="POST" class="decision-form">
+                    <button type="submit" class="btn-reject">Reject Application</button>
+                </form>
+            </div>
+
             {{if .Processing_data}}
             <div class="processing-container">
                 <!-- Status Tags -->
@@ -33,15 +46,24 @@
 
                 <!-- Issues Tags -->
                 <div class="tag-group">
-                {{range .Processing_data.Issues}}
-                    <span class="tag tag-issue">{{.}}</span>
+                    {{range .Processing_data.Issues}}
+                        <span class="tag tag-issue">{{.}}</span>
                     {{end}}
                     {{range .Processing_data.Potential_issues}}
                         <span class="tag tag-potential">{{.}}</span>
                     {{end}}
                 </div>
+
+                <!-- Unfiltered Text Box -->
+                <div class="unfiltered-box">
+                    <label>Unfiltered Text (OCR):</label>
+                    <div class="unfiltered-content">
+                        {{.Processing_data.Unfiltered_text}}
+                    </div>
+                </div>
             </div>
             {{end}}
+
             <p class="date">Uploaded: {{.UploadDate}}</p>
         </main>
     </div>

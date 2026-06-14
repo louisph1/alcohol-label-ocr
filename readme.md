@@ -1,7 +1,7 @@
 For an explaination on what this is, read instructions.md
 
 ## Setup and run
-Install tesserect (os dependent, should be a package on most linux distributions)
+Generate an API key and put it in `apikey.txt`
 
 Then run:
 
@@ -11,31 +11,34 @@ Or build executable with
 
 `go build .`
 
-### Note:
+# Deployment
+todo
+
+### Notes:
+There is a large delay (10-40s) between uploading and getting the AI results for an image, HOWEVER, this is designed to happen after upload and cache the results before a TTB employee even sees the label. Therefore it should be seamless for actual employees, but there is a delay for testers.
+
+Although a public API may be an issue, I used an open weight model (Gemma 4 31B) so it could be self hosted if that's an issue. Google endpoints shouldn't be blocked anyways, and if you're using an Azure VPS you can probably just choose not to have a firewall, since API requests are all server side.
+
 If this was an actual problem, I believe the solution would not be to make a new prototype/program (as the systems administrator said, that's years away), but to just upgrade the old system to process the OCR on the backend with another thread and store it (like this program does). Instead of wasting time doing it on the front end when an employee starts to process a file, just do it after an upload automatically. You could keep the algorithm with the 40 second delay that way, but upgrading should not be too difficult either. You could roll something like that out overnight without system/ui changes or regulatory hurdles.
 
 ### Deployment:
-The server opens two ports for two access points. One for users/companies and one for employees. Ideally you would buy a domain name to make both easier to find, then use a firewall or reverse proxy to protect the employee site from public internet access if an employee login is insufficient.
+The server opens two ports for two access points. One for users/companies and one for employees. Ideally you would buy a domain name to make both easier to find, then use a login to protect the employee site.
 
-Since Azure is used, a D-family VPS is probably sufficient (N-series if switching to a multimodal LLM, see below). 150,000 applications is just 17/hr and normal web server stuff like storage and bandwidth will be the main bottlenecks most likely. Self hosting the whole thing would work too.
-
-There are some scalability limits in this prototype that could be fixed in a real release without much issue. (see scope section.)
+Since Azure is used, a D-family VPS is probably sufficient (N-series if self hosting AI). 150,000 applications is just 17/hr and normal web server stuff like storage and bandwidth will be the main bottlenecks most likely.
 
 ### Dependencies
-This program is entirely self hosted with open source software so contractor payments, external connections, and downtime for dependencies are non-issues. It uses SQLite for the database and Tesseract for the optical character recognition. I used go because it's a fast language that's simple to use and designed to make web backends.
+This program  uses SQLite for the database and Gemma (through google API) for the optical character recognition. I used go because it's a fast language that's simple to use and designed to make web backends.
 
+# Design decisions
 ### Used OCR Model
-Tesseract is used because it is lightweight, CPU based, self-hosted, and open-source. The image is pre-processed for clarity and it uses a non-LLM AI and tries to roughly match the inputs to the image.
+I used tesseract originally, but abandoned it because it got bad results, although it was fast and open source. Gemma 4 is better because it recognizes multiple fonts/text sizes, is smart enough to determine things like boldness/visibility of the government warning, different formats for ABV, etc. No need for janky regex. Theoretically non-technical employees could give it new instructions by modifying the prompt as well, but that's out of scope here. It just sends back JSON with any issues it has.
 
-### Room for improvement
-A multimodal LLM would be better because it could determine things like text font/size requirements, as well as determining legal compliance and different rules for types natively. Rules could be changed by non-technical employees just editing text files. GPT-4o or Claude would have been great, but the requirement for external APIs is bad, as well as the constant model changes that occur.
-
-An open-weight model like Google Gemma 4 would be perfect, but I don't own a powerful GPU to test this. I tried deepseek and it worked well for a TTB label, but the government probably doesn't want to use Chinese AI, even if it's open-weight.
+Sometime it suffers from AI schizophrenia, like saying the GOVERNMENT WARNING is not capitalized when it is, but it still produces a good list of points for employees to look at. Having the thinking and resolution on highest helps somewhat. The model can easily be changed to a better one later as well.
 
 ### Scope:
 This is not scalable because it is a prototype and only intended to demonstrate addition of ML tools. On a real program there should be protections to prevent multiple users working on the same case, like seperate employee queues or claiming of batches. There is no protection against DOS attacks/spam.
 
-For a real system it's likely better to put the web user interface on a different server and use MySQL instead of SQLite.
+For a real system it's likely better to put the web user interface on a different server (so the employees don't stop working if the frontend gets DDOSed/needs downtime) and use MySQL instead of SQLite.
 
 ### Other note
 The forks, stargazers, watchers, repo, etc are all public so anyone can see other people's submissions and the personal account of the guy that made this.

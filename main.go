@@ -324,6 +324,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			// Get individual image form fields (using indexed naming)
 			index := strconv.Itoa(successCount)
 			name := r.FormValue("name_" + index)
+			title := r.FormValue("name_" + index)
 			typee := r.FormValue("type_" + index)
 			alcohol_content := r.FormValue("alcohol_content_" + index)
 			net_content := r.FormValue("net_content_" + index)
@@ -352,7 +353,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			dbMutex.Lock()
 			res, err := db.Exec(
 				"INSERT INTO images (collection_id, name, type, alcohol_content, net_content, origin, filename) VALUES (?, ?, ?, ?, ?, ?, ?)",
-				collectionID, name, typee, alcohol_content, net_content, origin, filename,
+				collectionID, title, typee, alcohol_content, net_content, origin, filename,
 			)
 			dbMutex.Unlock()
 

@@ -77,13 +77,12 @@
             {{else}}
             <div class="empty-state">
                 <p>No applications in this group.</p>
-                <a href="http://localhost:8080" class="btn-primary">Add Images</a>
             </div>
             {{end}}
 
             <div class="collection-actions">
                 <form action="/delete-collection/{{.ID}}" method="POST" onsubmit="return confirm('Delete entire collection and all its images?')">
-                    <button type="submit" class="btn-danger">Delete Collection</button>
+                    <button type="submit" class="btn-danger">Reject all</button>
                 </form>
             </div>
         </main>
