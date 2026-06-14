@@ -370,8 +370,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		}
 
-		galleryURL := fmt.Sprintf("http://localhost%s", galleryPort)
-		http.Redirect(w, r, galleryURL+"/", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
 

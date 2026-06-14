@@ -1,4 +1,4 @@
-module alcohol
+module alcohol-label-ocr
 
 go 1.26.3
 

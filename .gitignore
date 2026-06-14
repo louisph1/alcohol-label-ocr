@@ -1,3 +1,5 @@
 *.db
 uploads/*
 apikey.txt
+alcohol
+alcohol-label-ocr
