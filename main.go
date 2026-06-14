@@ -475,9 +475,9 @@ func viewCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	dbMutex.RLock()
 	var c Collection
 	err := db.QueryRow(
-		"SELECT id, name, created_date FROM collections WHERE id = ?",
+		"SELECT id, name, address, created_date FROM collections WHERE id = ?",
 		collectionID,
-	).Scan(&c.ID, &c.Name, &c.CreatedDate)
+	).Scan(&c.ID, &c.Name, &c.Address, &c.CreatedDate)
 
 	if err != nil {
 		dbMutex.RUnlock()
