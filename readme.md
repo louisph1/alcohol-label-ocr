@@ -14,8 +14,8 @@ Or build executable with
 # Testing
 This is hosted using Hetzner
 
-Customer portal: 5.161.124.101:8080
-Employee portal: 5.161.124.101:8081
+Customer portal: `5.161.124.101:8080` \
+Employee portal: `5.161.124.101:8081`
 
 ### Notes:
 There is a large delay (10-40s) between uploading and getting the AI results for an image, HOWEVER, this is designed to happen after upload and cache the results before a TTB employee even sees the label. Therefore it should be seamless for actual employees, but there is a delay for testers.
