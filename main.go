@@ -104,6 +104,9 @@ func main() {
 	// Create tables
 	createTables()
 
+	//clear processing entries
+	deleteUnprocessedCollections()
+
 	// Parse templates
 	templates = template.Must(template.ParseGlob("templates/*.html"))
 
@@ -637,4 +640,58 @@ func deleteCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	dbMutex.Unlock()
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func deleteUnprocessedCollections() {
+	//get all unprocessed collections
+	var collections []int
+	dbMutex.RLock()
+	rowsOuter, err := db.Query(`
+        SELECT c.id, COUNT(i.id) as image_count
+        FROM collections c
+        LEFT JOIN images i ON c.id = i.collection_id
+        GROUP BY c.id
+		HAVING c.processed < image_count
+    `)
+	if err != nil {
+		log.Fatal("delete unprocessed collections sql errer", err)
+		return
+	}
+	for rowsOuter.Next() {
+		var colID int
+		var temp int
+		rowsOuter.Scan(&colID, &temp)
+		collections = append(collections, colID)
+	}
+	defer rowsOuter.Close()
+	dbMutex.RUnlock()
+
+	for _, colID := range collections {
+		fmt.Println("Purging collection", colID)
+
+		// Get all filenames in collection
+		dbMutex.RLock()
+		rows, err := db.Query("SELECT filename FROM images WHERE collection_id = ?", colID)
+		if err == nil {
+			var filenames []string
+			for rows.Next() {
+				var filename string
+				rows.Scan(&filename)
+				filenames = append(filenames, filename)
+			}
+			rows.Close()
+
+			// Delete files
+			for _, filename := range filenames {
+				os.Remove(filepath.Join("uploads", filename))
+			}
+		}
+		dbMutex.RUnlock()
+
+		// Delete from database
+		dbMutex.Lock()
+		db.Exec("DELETE FROM images WHERE collection_id = ?", colID)
+		db.Exec("DELETE FROM collections WHERE id = ?", colID)
+		dbMutex.Unlock()
+	}
 }
